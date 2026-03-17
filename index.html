@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asher Group | Construction Technology Advisory</title>
+  <meta name="description" content="Asher Group Sales Dashboard — Aaron Anderson | Construction Technology Advisory" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React + ReactDOM -->
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+
+  <!-- Recharts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.5.0/Recharts.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script>
+    // Make lucide icons available as React components
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide && !window.lucide.Menu) {
+        // Map icon names from lucide
+        Object.keys(window.lucide).forEach(k => {
+          if (typeof window.lucide[k] === 'function') {
+            window.lucide[k].displayName = k;
+          }
+        });
+      }
+    });
+  </script>
+
+  <!-- Babel Standalone (JSX transpiler) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+
+  <style>
+    body { margin: 0; padding: 0; background-color: #0f172a; }
+    #root { min-height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="react">
+
+const { useState, useEffect, useRef } = React;
+const { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } = Recharts;
+const { Menu, X, Settings, Download, Send, ArrowRight, CheckCircle2, AlertCircle, TrendingUp, Clock, DollarSign, Users, Target, Zap, Home, Briefcase, BarChart3, Play, Copy } = lucide;
+
+
+const AsherGroupDashboard = () => {
+  const [activeTab, setActiveTab] = useState('home');
+  const [salesMode, setSalesMode] = useState(false);
+  const [showEngagementModal, setShowEngagementModal] = useState(false);
+  const [selectedEngagement, setSelectedEngagement] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Qualifier State
+  const [qualifier, setQualifier] = useState({
+    clientType: '',
+    painPoint: '',
+    orgSize: '',
+    timeline: '',
+    techMaturity: ''
+  });
+
+  // Engagement Modal State
+  const [engagementForm, setEngagementForm] = useState({
+    companyName: '',
+    contactName: '',
+    contactEmail: '',
+    phone: '',
+    notes: ''
+  });
+
+  // Benchmark Data
+  const engagements = [
+    {
+      id: 1,
+      name: 'Digital Maturity Assessment',
+      priceMin: 5000,
+      priceMax: 10000,
+      durationMin: 1,
+      durationMax: 2,
+      durationUnit: 'weeks',
+      outputs: ['DOCX', 'Dashboard'],
+      category: 'Diagnostic',
+      description: 'Quick evaluation of current tech stack maturity and readiness',
+      archetype: ['GC', 'Owner', 'PE/CVC']
+    },
+    {
+      id: 2,
+      name: 'Tech Audit Sprint',
+      priceMin: 20000,
+      priceMax: 50000,
+      durationMin: 2,
+      durationMax: 2,
+      durationUnit: 'weeks',
+      outputs: ['DOCX', 'XLSX'],
+      category: 'Diagnostic',
+      description: 'Fast diagnostic across technology, processes, and vendor landscape',
+      archetype: ['GC', 'Owner']
+    },
+    {
+      id: 3,
+      name: 'Tech Landscape Map',
+      priceMin: 1500,
+      priceMax: 5000,
+      durationMin: 1,
+      durationMax: 1,
+      durationUnit: 'quarter',
+      outputs: ['PPTX', 'XLSX'],
+      category: 'Ongoing',
+      description: 'Quarterly vendor and market intelligence subscription',
+      archetype: ['GC', 'Owner', 'PE/CVC']
+    },
+    {
+      id: 4,
+      name: 'Vendor Evaluation Toolkit',
+      priceMin: 5000,
+      priceMax: 15000,
+      durationMin: 2,
+      durationMax: 3,
+      durationUnit: 'weeks',
+      outputs: ['DOCX', 'XLSX'],
+      category: 'Project',
+      description: 'Structured vendor selection and RFP support',
+      archetype: ['GC', 'Owner']
+    },
+    {
+      id: 5,
+      name: 'Technology Roadmap',
+      priceMin: 25000,
+      priceMax: 75000,
+      durationMin: 6,
+      durationMax: 10,
+      durationUnit: 'weeks',
+      outputs: ['DOCX', 'XLSX'],
+      category: 'Project',
+      description: '2-3 year transformation and technology adoption plan',
+      archetype: ['GC', 'Owner', 'PE/CVC']
+    },
+    {
+      id: 6,
+      name: 'Market Entry Strategy',
+      priceMin: 40000,
+      priceMax: 100000,
+      durationMin: 4,
+      durationMax: 4,
+      durationUnit: 'weeks',
+      outputs: ['DOCX', 'XLSX'],
+      category: 'Project',
+      description: 'Go-to-market playbook for new construction tech product',
+      archetype: ['ConTech', 'PE/CVC']
+    },
+    {
+      id: 7,
+      name: 'Business Case & ROI',
+      priceMin: 15000,
+      priceMax: 35000,
+      durationMin: 2,
+      durationMax: 3,
+      durationUnit: 'weeks',
+      outputs: ['XLSX', 'DOCX'],
+      category: 'Project',
+      description: 'Financial justification and investment rationale modeling',
+      archetype: ['GC', 'Owner', 'PE/CVC']
+    },
+    {
+      id: 8,
+      name: 'Commercial DD Brief',
+      priceMin: 10000,
+      priceMax: 25000,
+      durationMin: 2,
+      durationMax: 3,
+      durationUnit: 'weeks',
+      outputs: ['DOCX'],
+      category: 'PE/CVC',
+      description: 'Commercial and technology diligence for deal assessment',
+      archetype: ['PE/CVC']
+    },
+    {
+      id: 9,
+      name: 'Investment Thesis',
+      priceMin: 25000,
+      priceMax: 75000,
+      durationMin: 3,
+      durationMax: 4,
+      durationUnit: 'weeks',
+      outputs: ['DOCX', 'PPTX'],
+      category: 'PE/CVC',
+      description: 'Fund-level market positioning and investment strategy',
+      archetype: ['PE/CVC']
+    },
+    {
+      id: 10,
+      name: 'Engagement SOW',
+      priceMin: null,
+      priceMax: null,
+      durationMin: 1,
+      durationMax: 1,
+      durationUnit: 'day',
+      outputs: ['DOCX'],
+      category: 'Closing',
+      description: 'Statement of Work to close engagement',
+      archetype: ['All']
+    }
+  ];
+
+  const retainerServices = [
+    { name: 'Retainer Light', priceMin: 5000, priceMax: 8000, daysPerMonth: '2-3' },
+    { name: 'Retainer Active', priceMin: 10000, priceMax: 15000, daysPerMonth: '5-8' },
+    { name: 'Fractional CINO', priceMin: 15000, priceMax: 20000, daysPerMonth: '10-15' }
+  ];
+
+  const competitors = [
+    { name: 'McKinsey/BCG/Bain', dayRate: '$6K–$10K', engagement: '$1–2M', strength: 'Brand', weakness: 'Too expensive' },
+    { name: 'FMI Consulting', dayRate: '$2.5K–$5K', engagement: '$150K–$500K', strength: 'Construction expertise', weakness: 'Less tech depth' },
+    { name: 'Big Four (Deloitte, EY, KPMG)', dayRate: '$2.5K–$4.75K', engagement: '$250K–$900K', strength: 'Credibility', weakness: 'Very expensive' },
+    { name: 'Turner & Townsend / RLB', dayRate: '$1.2K–$4K', engagement: '$50K–$400K', strength: 'Cost friendly', weakness: 'Commoditized' },
+    { name: 'Aaron Anderson / Asher Group', dayRate: '$2.5K–$4K', engagement: '$20K–$100K', strength: 'Operator + tech + speed', weakness: 'Smaller brand' }
+  ];
+
+  const clientArchetypes = [
+    {
+      name: 'GC / ENR 400',
+      icon: '🏗️',
+      decisionCycle: '4-8 weeks (<$50K), 2-4 months (>$50K)',
+      annualBudget: '$500K–$2M',
+      typical: ['Innovation assessment $30K-$60K', 'Tech roadmap $25K-$50K', 'Prefab strategy $40K-$75K', 'Fractional CINO $10K-$15K/mo'],
+      buyers: 'VP Strategy, COO, Chief Innovation Officer'
+    },
+    {
+      name: 'Owner-Developer / REIT',
+      icon: '🏢',
+      decisionCycle: '3-8 weeks with bureaucracy',
+      annualBudget: 'Large, variable',
+      typical: ['Construction tech eval $20K-$40K', 'Process optimization $40K-$75K', 'Innovation advisory $8K-$12K/mo', 'Prefab feasibility $25K-$50K'],
+      buyers: 'CTO, VP Operations, Chief Digital Officer'
+    },
+    {
+      name: 'PE/CVC Proptech Investor',
+      icon: '💰',
+      decisionCycle: 'Fast, deal-driven',
+      annualBudget: 'Highest margin',
+      typical: ['Commercial DD $50K-$150K (mid), $10K-$25K (single)', 'Advisory $10K-$15K/mo', 'Investment thesis $25K-$75K', 'Board seats $25K-$50K/yr + carry'],
+      buyers: 'Partners, Managing Directors, Investment team'
+    }
+  ];
+
+  const productLadder = [
+    { step: 1, name: 'Expert Network', price: '$400–$700/hr', description: 'Quick validation' },
+    { step: 2, name: 'Digital Maturity', price: '$5K–$10K', description: '1-2 week diagnostic' },
+    { step: 3, name: 'Tech Audit', price: '$20K–$50K', description: '2-week deep dive' },
+    { step: 4, name: 'Fixed Projects', price: '$25K–$100K', description: 'Transformation' },
+    { step: 5, name: 'Retainer/CINO', price: '$8K–$20K/mo', description: 'Ongoing partnership' }
+  ];
+
+  // Recommendation Logic
+  const getRecommendation = () => {
+    if (!qualifier.clientType || !qualifier.painPoint || !qualifier.orgSize || !qualifier.timeline || !qualifier.techMaturity) {
+      return null;
+    }
+
+    let recommendedEngagements = [];
+    let recommended = {
+      engagement: '',
+      priceRange: '',
+      duration: '',
+      rationale: ''
+    };
+
+    // PE/CVC Logic
+    if (qualifier.clientType === 'PE/CVC') {
+      if (qualifier.painPoint === 'Investment/Diligence') {
+        recommended = {
+          engagement: 'Commercial DD Brief',
+          priceRange: '$10K–$25K/deal',
+          duration: '2-3 weeks',
+          rationale: 'Fast-track due diligence for proptech/contech deal screening.'
+        };
+      } else if (qualifier.painPoint === 'Market Entry') {
+        recommended = {
+          engagement: 'Investment Thesis',
+          priceRange: '$25K–$75K',
+          duration: '3-4 weeks',
+          rationale: 'Fund-level market positioning and thesis development.'
+        };
+      }
+    }
+    // GC / ENR 400 Logic
+    else if (qualifier.clientType === 'GC') {
+      if (qualifier.techMaturity === 'None/minimal' || qualifier.techMaturity === 'Basic') {
+        if (qualifier.timeline === 'Immediate') {
+          recommended = {
+            engagement: 'Digital Maturity Assessment',
+            priceRange: '$5K–$10K',
+            duration: '1-2 weeks',
+            rationale: 'Quick diagnostic to identify gaps and prioritize next steps.'
+          };
+        } else {
+          recommended = {
+            engagement: 'Tech Audit Sprint',
+            priceRange: '$20K–$50K',
+            duration: '2 weeks',
+            rationale: 'Comprehensive audit across technology, processes, and vendors.'
+          };
+        }
+      } else if (qualifier.painPoint === 'Technology Adoption' || qualifier.painPoint === 'Digital Transformation') {
+        recommended = {
+          engagement: 'Technology Roadmap',
+          priceRange: '$25K–$75K',
+          duration: '6-10 weeks',
+          rationale: '2-3 year transformation roadmap with phased implementation.'
+        };
+      } else {
+        recommended = {
+          engagement: 'Tech Audit Sprint',
+          priceRange: '$20K–$50K',
+          duration: '2 weeks',
+          rationale: 'Fast diagnostic to understand current state and pain points.'
+        };
+      }
+    }
+    // Owner/REIT Logic
+    else if (qualifier.clientType === 'Owner') {
+      if (qualifier.painPoint === 'Technology Adoption' || qualifier.painPoint === 'Cost Reduction') {
+        recommended = {
+          engagement: 'Technology Roadmap',
+          priceRange: '$25K–$75K',
+          duration: '6-10 weeks',
+          rationale: 'Development process optimization and digital transformation roadmap.'
+        };
+      } else {
+        recommended = {
+          engagement: 'Tech Audit Sprint',
+          priceRange: '$20K–$50K',
+          duration: '2 weeks',
+          rationale: 'Construction tech evaluation and process assessment.'
+        };
+      }
+    }
+    // ConTech Logic
+    else if (qualifier.clientType === 'ConTech') {
+      if (qualifier.painPoint === 'Market Entry') {
+        recommended = {
+          engagement: 'Market Entry Strategy',
+          priceRange: '$40K–$100K',
+          duration: '4 weeks',
+          rationale: 'Go-to-market playbook targeting construction practitioners.'
+        };
+      } else {
+        recommended = {
+          engagement: 'Business Case & ROI',
+          priceRange: '$15K–$35K',
+          duration: '2-3 weeks',
+          rationale: 'Financial modeling for investor fundraising and customer sales.'
+        };
+      }
+    }
+
+    return recommended;
+  };
+
+  const getValueProposition = () => {
+    const rec = getRecommendation();
+    if (!rec) return '';
+
+    let vp = '';
+    if (qualifier.clientType === 'PE/CVC') {
+      vp = `We provide commercial and technology due diligence for proptech and contech investments, combining operator credibility with capital markets expertise. ${rec.engagement} in ${rec.duration} gets your deal team unstuck.`;
+    } else if (qualifier.clientType === 'GC') {
+      vp = `We help ENR 400 firms accelerate digital transformation and innovation adoption without the $1M+ price tag of MBB. ${rec.engagement} ($${Math.floor((rec.priceRange.match(/\d+/g)?.[0] || 0))}K) gives you a clear roadmap.`;
+    } else if (qualifier.clientType === 'Owner') {
+      vp = `We combine construction expertise with technology strategy to optimize your development process and capital deployment. ${rec.engagement} benchmarks your tech maturity against peers.`;
+    } else if (qualifier.clientType === 'ConTech') {
+      vp = `We help construction tech founders and investors validate market fit, size TAM, and build winning go-to-market strategies. ${rec.engagement} positions your product for scale.`;
+    }
+
+    return vp;
+  };
+
+  // UI Components
+  const formatPrice = (min, max) => {
+    if (min === null || max === null) return 'Custom';
+    return `$${(min / 1000).toFixed(0)}K–$${(max / 1000).toFixed(0)}K`;
+  };
+
+  const handleOpenEngagementModal = (engagement) => {
+    setSelectedEngagement(engagement);
+    setShowEngagementModal(true);
+    setEngagementForm({ companyName: '', contactName: '', contactEmail: '', phone: '', notes: '' });
+  };
+
+  const handleGenerateSOW = () => {
+    const recommendation = getRecommendation();
+    if (!recommendation) return;
+
+    const sowText = `
+STATEMENT OF WORK
+================
+Client: ${engagementForm.companyName}
+Contact: ${engagementForm.contactName}
+Email: ${engagementForm.contactEmail}
+Phone: ${engagementForm.phone}
+
+ENGAGEMENT: ${recommendation.engagement}
+PRICE: ${recommendation.priceRange}
+DURATION: ${recommendation.duration}
+
+SCOPE OF WORK:
+${engagementForm.notes || 'TBD - to be discussed and finalized'}
+
+DELIVERABLES:
+- Comprehensive assessment report
+- Strategic recommendations
+- Implementation roadmap
+- Executive presentation
+
+TIMELINE:
+${recommendation.duration} from kickoff
+
+TERMS:
+- 50% due at signature
+- 50% due at delivery
+- Net 30 invoice terms
+- Scope change addendum required for material changes
+
+---
+Aaron Anderson
+Asher Group | Construction Technology Advisory
+aaron@ashergroup.com
+`;
+
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(sowText));
+    element.setAttribute('download', `SOW_${engagementForm.companyName.replace(/\s+/g, '_')}.txt`);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+
+    setShowEngagementModal(false);
+  };
+
+  // Tab: Home
+  const HomeTab = () => (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="border-b border-slate-700 pb-8">
+        <h1 className="text-4xl font-bold text-white mb-2">Asher Group</h1>
+        <h2 className="text-xl text-slate-300 mb-4">Construction Technology Advisory</h2>
+        <p className="text-amber-400 text-lg font-semibold mb-3">Aaron Anderson | $2,500–$4,000/day | Swinerton Pedigree</p>
+        <p className="text-slate-300 text-base max-w-2xl">
+          <span className="text-amber-400 font-semibold">FMI-quality strategic insight with operator credibility, at boutique accessibility and speed.</span>
+        </p>
+      </div>
+
+      {/* Client Archetypes */}
+      <div>
+        <h3 className="text-2xl font-bold text-white mb-6">Ideal Client Profiles</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {clientArchetypes.map((archetype, idx) => (
+            <div
+              key={idx}
+              onClick={() => {
+                setQualifier(prev => ({ ...prev, clientType: archetype.name.split('/')[0] === 'GC' ? 'GC' : archetype.name.split('/')[0] }));
+                setActiveTab('qualifier');
+              }}
+              className="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-amber-400 cursor-pointer transition-colors"
+            >
+              <div className="text-3xl mb-4">{archetype.icon}</div>
+              <h4 className="text-white font-bold text-lg mb-3">{archetype.name}</h4>
+              <div className="space-y-3 text-sm text-slate-300">
+                <div>
+                  <p className="text-amber-400 font-semibold">Decision Cycle</p>
+                  <p>{archetype.decisionCycle}</p>
+                </div>
+                <div>
+                  <p className="text-amber-400 font-semibold">Annual Budget</p>
+                  <p>{archetype.annualBudget}</p>
+                </div>
+                <div>
+                  <p className="text-amber-400 font-semibold">Typical Engagements</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    {archetype.typical.slice(0, 2).map((item, i) => <li key={i}>{item}</li>)}
+                  </ul>
+                </div>
+                <div>
+                  <p className="text-amber-400 font-semibold">Buyers</p>
+                  <p className="text-xs">{archetype.buyers}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Product Ladder */}
+      <div>
+        <h3 className="text-2xl font-bold text-white mb-6">Product Ladder: From $400/hr to $20K/month</h3>
+        <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            {productLadder.map((item, idx) => (
+              <div key={idx} className="flex-1 text-center">
+                <div className="text-4xl font-bold text-amber-400 mb-2">{item.step}</div>
+                <h4 className="text-white font-bold mb-1">{item.name}</h4>
+                <p className="text-amber-400 font-semibold text-sm mb-2">{item.price}</p>
+                <p className="text-xs text-slate-400">{item.description}</p>
+                {idx < productLadder.length - 1 && (
+                  <div className="hidden md:block absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2">
+                    <ArrowRight className="w-6 h-6 text-slate-600" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Year 1 Targets */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-slate-800 border border-amber-400 rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <DollarSign className="w-8 h-8 text-amber-400" />
+            <h4 className="text-white font-bold text-lg">Revenue Target</h4>
+          </div>
+          <p className="text-amber-400 text-2xl font-bold">$250K–$400K</p>
+          <p className="text-slate-400 text-sm mt-2">Year 1 gross service revenue</p>
+        </div>
+        <div className="bg-slate-800 border border-amber-400 rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Users className="w-8 h-8 text-amber-400" />
+            <h4 className="text-white font-bold text-lg">Client Count</h4>
+          </div>
+          <p className="text-amber-400 text-2xl font-bold">3–5 Active</p>
+          <p className="text-slate-400 text-sm mt-2">Retained and/or monthly engagements</p>
+        </div>
+        <div className="bg-slate-800 border border-amber-400 rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Target className="w-8 h-8 text-amber-400" />
+            <h4 className="text-white font-bold text-lg">Avg Engagement</h4>
+          </div>
+          <p className="text-amber-400 text-2xl font-bold">$50K–$100K</p>
+          <p className="text-slate-400 text-sm mt-2">Per engagement across cohort</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Tab: Sales Qualifier
+  const QualifierTab = () => {
+    const recommendation = getRecommendation();
+
+    return (
+      <div className="space-y-8">
+        <div className="border-b border-slate-700 pb-6">
+          <h2 className="text-3xl font-bold text-white">Sales Qualifier</h2>
+          <p className="text-slate-400 mt-2">Answer 5 questions to get a live engagement recommendation</p>
+        </div>
+
+        {/* Questions */}
+        <div className="space-y-6">
+          {/* Q1: Client Type */}
+          <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+            <label className="text-white font-bold text-lg mb-4 block">1. Client Type</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {['GC', 'Owner', 'PE/CVC', 'ConTech'].map(type => (
+                <button
+                  key={type}
+                  onClick={() => setQualifier(prev => ({ ...prev, clientType: type }))}
+                  className={`p-3 rounded-lg border font-semibold transition-all ${
+                    qualifier.clientType === type
+                      ? 'bg-amber-400 border-amber-400 text-black'
+                      : 'bg-slate-700 border-slate-600 text-white hover:border-amber-400'
+                  }`}
+                >
+                  {type === 'GC' && 'GC / ENR 400'}
+                  {type === 'Owner' && 'Owner-Developer / REIT'}
+                  {type === 'PE/CVC' && 'PE/CVC Proptech Investor'}
+                  {type === 'ConTech' && 'ConTech Startup'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Q2: Pain Point */}
+          <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+            <label className="text-white font-bold text-lg mb-4 block">2. Primary Pain Point</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {['Technology Adoption', 'Digital Transformation', 'Market Entry', 'Investment/Diligence', 'Cost Reduction', 'Other'].map(pain => (
+                <button
+                  key={pain}
+                  onClick={() => setQualifier(prev => ({ ...prev, painPoint: pain }))}
+                  className={`p-3 rounded-lg border font-semibold transition-all ${
+                    qualifier.painPoint === pain
+                      ? 'bg-amber-400 border-amber-400 text-black'
+                      : 'bg-slate-700 border-slate-600 text-white hover:border-amber-400'
+                  }`}
+                >
+                  {pain}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Q3: Org Size */}
+          <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+            <label className="text-white font-bold text-lg mb-4 block">3. Organization Size / Revenue</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {['<$25M', '$25M–$100M', '$100M–$500M', '$500M+'].map(size => (
+                <button
+                  key={size}
+                  onClick={() => setQualifier(prev => ({ ...prev, orgSize: size }))}
+                  className={`p-3 rounded-lg border font-semibold transition-all ${
+                    qualifier.orgSize === size
+                      ? 'bg-amber-400 border-amber-400 text-black'
+                      : 'bg-slate-700 border-slate-600 text-white hover:border-amber-400'
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Q4: Timeline */}
+          <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+            <label className="text-white font-bold text-lg mb-4 block">4. Decision Timeline</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {['Immediate', 'Near-term', 'Planning'].map(timeline => (
+                <button
+                  key={timeline}
+                  onClick={() => setQualifier(prev => ({ ...prev, timeline }))}
+                  className={`p-3 rounded-lg border font-semibold transition-all ${
+                    qualifier.timeline === timeline
+                      ? 'bg-amber-400 border-amber-400 text-black'
+                      : 'bg-slate-700 border-slate-600 text-white hover:border-amber-400'
+                  }`}
+                >
+                  {timeline === 'Immediate' && 'Immediate (this quarter)'}
+                  {timeline === 'Near-term' && 'Near-term (1-2 quarters)'}
+                  {timeline === 'Planning' && 'Planning (2-4 quarters)'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Q5: Tech Maturity */}
+          <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+            <label className="text-white font-bold text-lg mb-4 block">5. Current Tech Stack Maturity</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {['None/minimal', 'Basic', 'Moderate', 'Advanced'].map(maturity => (
+                <button
+                  key={maturity}
+                  onClick={() => setQualifier(prev => ({ ...prev, techMaturity: maturity }))}
+                  className={`p-3 rounded-lg border font-semibold transition-all ${
+                    qualifier.techMaturity === maturity
+                      ? 'bg-amber-400 border-amber-400 text-black'
+                      : 'bg-slate-700 border-slate-600 text-white hover:border-amber-400'
+                  }`}
+                >
+                  {maturity === 'None/minimal' && 'None / Minimal'}
+                  {maturity === 'Basic' && 'Basic (single systems)'}
+                  {maturity === 'Moderate' && 'Moderate (integrated)'}
+                  {maturity === 'Advanced' && 'Advanced (analytics/BIM)'}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Recommendation Card */}
+        {recommendation && (
+          <div className="bg-gradient-to-r from-amber-600 to-amber-500 rounded-lg p-8 text-black">
+            <div className="flex items-start gap-4 mb-6">
+              <CheckCircle2 className="w-8 h-8 flex-shrink-0" />
+              <div>
+                <h3 className="text-2xl font-bold mb-2">Recommended Engagement</h3>
+                <p className="text-sm opacity-90">Based on your qualification answers</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div>
+                <p className="text-sm font-semibold opacity-75 mb-1">ENGAGEMENT</p>
+                <p className="text-xl font-bold">{recommendation.engagement}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold opacity-75 mb-1">PRICE</p>
+                <p className="text-xl font-bold">{recommendation.priceRange}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold opacity-75 mb-1">DURATION</p>
+                <p className="text-xl font-bold">{recommendation.duration}</p>
+              </div>
+            </div>
+
+            <p className="text-sm mb-6">{recommendation.rationale}</p>
+
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 mb-6">
+              <p className="text-sm font-semibold mb-2">Value Proposition (Your Pitch)</p>
+              <p className="text-sm">{getValueProposition()}</p>
+            </div>
+
+            <button
+              onClick={() => {
+                setSelectedEngagement(
+                  engagements.find(e => e.name === recommendation.engagement)
+                );
+                handleOpenEngagementModal(engagements.find(e => e.name === recommendation.engagement));
+              }}
+              className="w-full bg-black text-amber-400 font-bold py-3 rounded-lg hover:bg-slate-900 transition-colors flex items-center justify-center gap-2"
+            >
+              <Send className="w-5 h-5" />
+              Generate SOW
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Tab: Engagements
+  const EngagementsTab = () => (
+    <div className="space-y-8">
+      <div className="border-b border-slate-700 pb-6">
+        <h2 className="text-3xl font-bold text-white">All Engagement Types</h2>
+        <p className="text-slate-400 mt-2">10 core deliverable products</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {engagements.map(engagement => (
+          <div key={engagement.id} className="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-amber-400 transition-colors">
+            <div className="mb-4">
+              <span className="inline-block bg-amber-400 text-black text-xs font-bold px-3 py-1 rounded mb-3">
+                {engagement.category}
+              </span>
+              <h4 className="text-white font-bold text-lg">{engagement.name}</h4>
+            </div>
+
+            <p className="text-slate-300 text-sm mb-4">{engagement.description}</p>
+
+            <div className="space-y-3 mb-6 text-sm">
+              {engagement.priceMin !== null && (
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-amber-400" />
+                  <span className="text-slate-300">{formatPrice(engagement.priceMin, engagement.priceMax)}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-400" />
+                <span className="text-slate-300">
+                  {engagement.durationMin}–{engagement.durationMax} {engagement.durationUnit}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                {engagement.outputs.map(output => (
+                  <span key={output} className="bg-slate-700 text-slate-200 text-xs px-2 py-1 rounded">
+                    {output}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => handleOpenEngagementModal(engagement)}
+              className="w-full bg-amber-400 text-black font-bold py-2 rounded-lg hover:bg-amber-500 transition-colors"
+            >
+              Generate
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Retainer Services */}
+      <div className="border-t border-slate-700 pt-8">
+        <h3 className="text-2xl font-bold text-white mb-6">Retainer Services</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {retainerServices.map((service, idx) => (
+            <div key={idx} className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+              <h4 className="text-white font-bold text-lg mb-4">{service.name}</h4>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-amber-400 font-semibold text-sm">Price</p>
+                  <p className="text-white font-bold text-lg">${service.priceMin}K–${service.priceMax}K/month</p>
+                </div>
+                <div>
+                  <p className="text-amber-400 font-semibold text-sm">Availability</p>
+                  <p className="text-slate-300">{service.daysPerMonth} days/month</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Tab: Pricing & Positioning
+  const PricingTab = () => {
+    const revenueData = [
+      { name: 'Fixed Projects', value: 50, fill: '#f59e0b' },
+      { name: 'Retainer', value: 30, fill: '#d97706' },
+      { name: 'Time & Materials', value: 15, fill: '#b45309' },
+      { name: 'Value-Based', value: 5, fill: '#92400e' }
+    ];
+
+    return (
+      <div className="space-y-8">
+        <div className="border-b border-slate-700 pb-6">
+          <h2 className="text-3xl font-bold text-white">Pricing & Positioning</h2>
+          <p className="text-slate-400 mt-2">Full engagement menu and competitive landscape</p>
+        </div>
+
+        {/* Pricing Table */}
+        <div>
+          <h3 className="text-2xl font-bold text-white mb-6">Complete Engagement Pricing</h3>
+          <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-slate-900 border-b border-slate-700">
+                    <th className="px-6 py-4 text-left text-white font-bold">Engagement</th>
+                    <th className="px-6 py-4 text-left text-amber-400 font-bold">Price</th>
+                    <th className="px-6 py-4 text-left text-amber-400 font-bold">Duration</th>
+                    <th className="px-6 py-4 text-left text-amber-400 font-bold">Category</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {engagements.map((eng, idx) => (
+                    <tr key={idx} className="border-b border-slate-700 hover:bg-slate-750 transition-colors">
+                      <td className="px-6 py-4 text-white font-semibold">{eng.name}</td>
+                      <td className="px-6 py-4 text-amber-400">{formatPrice(eng.priceMin, eng.priceMax)}</td>
+                      <td className="px-6 py-4 text-slate-300">{eng.durationMin}–{eng.durationMax} {eng.durationUnit}</td>
+                      <td className="px-6 py-4 text-slate-400 text-sm">{eng.category}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Competitor Comparison */}
+        <div>
+          <h3 className="text-2xl font-bold text-white mb-6">Competitive Positioning</h3>
+          <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-slate-900 border-b border-slate-700">
+                    <th className="px-6 py-4 text-left text-white font-bold">Competitor</th>
+                    <th className="px-6 py-4 text-left text-amber-400 font-bold">Day Rate</th>
+                    <th className="px-6 py-4 text-left text-amber-400 font-bold">Typical Engagement</th>
+                    <th className="px-6 py-4 text-left text-amber-400 font-bold">Key Strength</th>
+                    <th className="px-6 py-4 text-left text-amber-400 font-bold">Weakness</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {competitors.map((comp, idx) => (
+                    <tr
+                      key={idx}
+                      className={`border-b border-slate-700 hover:bg-slate-750 transition-colors ${
+                        comp.name === 'Aaron Anderson / Asher Group' ? 'bg-slate-750 border-amber-400' : ''
+                      }`}
+                    >
+                      <td className={`px-6 py-4 font-semibold ${comp.name === 'Aaron Anderson / Asher Group' ? 'text-amber-400' : 'text-white'}`}>
+                        {comp.name}
+                      </td>
+                      <td className="px-6 py-4 text-slate-300">{comp.dayRate}</td>
+                      <td className="px-6 py-4 text-slate-300">{comp.engagement}</td>
+                      <td className="px-6 py-4 text-green-400 text-sm">{comp.strength}</td>
+                      <td className="px-6 py-4 text-red-400 text-sm">{comp.weakness}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Revenue Mix */}
+        <div>
+          <h3 className="text-2xl font-bold text-white mb-6">Target Revenue Mix (Year 1)</h3>
+          <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie data={revenueData} cx="50%" cy="50%" labelLine={false} label={({ name, value }) => `${name}: ${value}%`} outerRadius={100}>
+                  {revenueData.map((entry, idx) => (
+                    <Cell key={idx} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Rate Card */}
+        <div>
+          <h3 className="text-2xl font-bold text-white mb-6">Rate Card</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+              <h4 className="text-white font-bold text-lg mb-4">Standard Rate</h4>
+              <p className="text-4xl text-amber-400 font-bold mb-2">$2,500–$4,000</p>
+              <p className="text-slate-400">per day</p>
+              <p className="text-sm text-slate-500 mt-4">Typical engagement duration: 1-10 weeks</p>
+            </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+              <h4 className="text-white font-bold text-lg mb-4">Minimum Engagement</h4>
+              <p className="text-4xl text-amber-400 font-bold mb-2">$2,000</p>
+              <p className="text-slate-400">per engagement</p>
+              <p className="text-sm text-slate-500 mt-4">No engagement below $2,000 or $250/hour</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Engagement Modal
+  const EngagementModal = () => {
+    if (!showEngagementModal || !selectedEngagement) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div className="bg-slate-800 border border-slate-700 rounded-lg max-w-lg w-full max-h-96 overflow-y-auto">
+          <div className="sticky top-0 bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
+            <h3 className="text-white font-bold text-lg">{selectedEngagement.name}</h3>
+            <button
+              onClick={() => setShowEngagementModal(false)}
+              className="text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-4">
+            <div>
+              <label className="text-amber-400 font-semibold text-sm">Company Name</label>
+              <input
+                type="text"
+                value={engagementForm.companyName}
+                onChange={e => setEngagementForm(prev => ({ ...prev, companyName: e.target.value }))}
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white mt-2 focus:outline-none focus:border-amber-400"
+                placeholder="ABC Construction"
+              />
+            </div>
+
+            <div>
+              <label className="text-amber-400 font-semibold text-sm">Contact Name</label>
+              <input
+                type="text"
+                value={engagementForm.contactName}
+                onChange={e => setEngagementForm(prev => ({ ...prev, contactName: e.target.value }))}
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white mt-2 focus:outline-none focus:border-amber-400"
+                placeholder="John Smith"
+              />
+            </div>
+
+            <div>
+              <label className="text-amber-400 font-semibold text-sm">Email</label>
+              <input
+                type="email"
+                value={engagementForm.contactEmail}
+                onChange={e => setEngagementForm(prev => ({ ...prev, contactEmail: e.target.value }))}
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white mt-2 focus:outline-none focus:border-amber-400"
+                placeholder="john@company.com"
+              />
+            </div>
+
+            <div>
+              <label className="text-amber-400 font-semibold text-sm">Phone</label>
+              <input
+                type="tel"
+                value={engagementForm.phone}
+                onChange={e => setEngagementForm(prev => ({ ...prev, phone: e.target.value }))}
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white mt-2 focus:outline-none focus:border-amber-400"
+                placeholder="(555) 123-4567"
+              />
+            </div>
+
+            <div>
+              <label className="text-amber-400 font-semibold text-sm">Scope Notes</label>
+              <textarea
+                value={engagementForm.notes}
+                onChange={e => setEngagementForm(prev => ({ ...prev, notes: e.target.value }))}
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white mt-2 focus:outline-none focus:border-amber-400 h-24"
+                placeholder="Key deliverables, timeline, specific areas of focus..."
+              />
+            </div>
+
+            <button
+              onClick={handleGenerateSOW}
+              disabled={!engagementForm.companyName || !engagementForm.contactName}
+              className="w-full bg-amber-400 text-black font-bold py-3 rounded-lg hover:bg-amber-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <Download className="w-5 h-5" />
+              Download SOW
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Main Layout
+  return (
+    <div className="min-h-screen bg-slate-900 text-white">
+      {/* Header */}
+      <header className="bg-slate-800 border-b border-slate-700 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-400 rounded-lg flex items-center justify-center font-bold text-black">AG</div>
+            <span className="font-bold text-lg hidden sm:inline">Asher Group</span>
+          </div>
+
+          <div className="hidden md:flex items-center gap-6">
+            <button
+              onClick={() => setActiveTab('home')}
+              className={`font-semibold transition-colors ${activeTab === 'home' ? 'text-amber-400' : 'text-slate-400 hover:text-white'}`}
+            >
+              Home
+            </button>
+            <button
+              onClick={() => setActiveTab('qualifier')}
+              className={`font-semibold transition-colors ${activeTab === 'qualifier' ? 'text-amber-400' : 'text-slate-400 hover:text-white'}`}
+            >
+              Qualifier
+            </button>
+            <button
+              onClick={() => setActiveTab('engagements')}
+              className={`font-semibold transition-colors ${activeTab === 'engagements' ? 'text-amber-400' : 'text-slate-400 hover:text-white'}`}
+            >
+              Engagements
+            </button>
+            <button
+              onClick={() => setActiveTab('pricing')}
+              className={`font-semibold transition-colors ${activeTab === 'pricing' ? 'text-amber-400' : 'text-slate-400 hover:text-white'}`}
+            >
+              Pricing
+            </button>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSalesMode(!salesMode)}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                salesMode
+                  ? 'bg-amber-400 text-black hover:bg-amber-500'
+                  : 'bg-slate-700 text-white hover:bg-slate-600'
+              }`}
+            >
+              {salesMode ? 'Exit Sales Mode' : 'Sales Mode'}
+            </button>
+
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden text-white">
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-slate-700 bg-slate-900 p-4 space-y-4">
+            <button
+              onClick={() => {
+                setActiveTab('home');
+                setMobileMenuOpen(false);
+              }}
+              className={`block w-full text-left px-4 py-2 rounded-lg ${
+                activeTab === 'home' ? 'bg-amber-400 text-black font-bold' : 'text-white hover:bg-slate-800'
+              }`}
+            >
+              Home
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('qualifier');
+                setMobileMenuOpen(false);
+              }}
+              className={`block w-full text-left px-4 py-2 rounded-lg ${
+                activeTab === 'qualifier' ? 'bg-amber-400 text-black font-bold' : 'text-white hover:bg-slate-800'
+              }`}
+            >
+              Qualifier
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('engagements');
+                setMobileMenuOpen(false);
+              }}
+              className={`block w-full text-left px-4 py-2 rounded-lg ${
+                activeTab === 'engagements' ? 'bg-amber-400 text-black font-bold' : 'text-white hover:bg-slate-800'
+              }`}
+            >
+              Engagements
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('pricing');
+                setMobileMenuOpen(false);
+              }}
+              className={`block w-full text-left px-4 py-2 rounded-lg ${
+                activeTab === 'pricing' ? 'bg-amber-400 text-black font-bold' : 'text-white hover:bg-slate-800'
+              }`}
+            >
+              Pricing
+            </button>
+          </div>
+        )}
+      </header>
+
+      {/* Sales Mode: Simplified View */}
+      {salesMode ? (
+        <main className="max-w-4xl mx-auto px-4 py-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">Sales Qualifier</h1>
+            <p className="text-slate-400">Quick engagement recommendation</p>
+          </div>
+
+          <QualifierTab />
+        </main>
+      ) : (
+        /* Normal Mode: Full Dashboard */
+        <main className="max-w-7xl mx-auto px-4 py-8">
+          {activeTab === 'home' && <HomeTab />}
+          {activeTab === 'qualifier' && <QualifierTab />}
+          {activeTab === 'engagements' && <EngagementsTab />}
+          {activeTab === 'pricing' && <PricingTab />}
+        </main>
+      )}
+
+      {/* Engagement Modal */}
+      <EngagementModal />
+    </div>
+  );
+};
+
+window.AsherGroupDashboard = AsherGroupDashboard;
+
+
+    const domContainer = document.getElementById('root');
+    const root = ReactDOM.createRoot(domContainer);
+    root.render(React.createElement(AsherGroupDashboard));
+  </script>
+</body>
+</html>
