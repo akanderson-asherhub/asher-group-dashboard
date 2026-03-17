@@ -9,31 +9,15 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- React + ReactDOM -->
-  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <!-- React + ReactDOM (UMD) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
-  <!-- Recharts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.5.0/Recharts.js"></script>
-
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  <script>
-    // Make lucide icons available as React components
-    window.addEventListener('DOMContentLoaded', () => {
-      if (window.lucide && !window.lucide.Menu) {
-        // Map icon names from lucide
-        Object.keys(window.lucide).forEach(k => {
-          if (typeof window.lucide[k] === 'function') {
-            window.lucide[k].displayName = k;
-          }
-        });
-      }
-    });
-  </script>
+  <!-- Recharts (UMD — exposes window.Recharts) -->
+  <script src="https://unpkg.com/recharts@2.9.0/umd/Recharts.js"></script>
 
   <!-- Babel Standalone (JSX transpiler) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
     body { margin: 0; padding: 0; background-color: #0f172a; }
@@ -44,10 +28,43 @@
   <div id="root"></div>
 
   <script type="text/babel" data-presets="react">
-
 const { useState, useEffect, useRef } = React;
-const { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } = Recharts;
-const { Menu, X, Settings, Download, Send, ArrowRight, CheckCircle2, AlertCircle, TrendingUp, Clock, DollarSign, Users, Target, Zap, Home, Briefcase, BarChart3, Play, Copy } = lucide;
+
+// Recharts components
+const {
+  BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, LineChart, Line
+} = window.Recharts || {};
+
+// Lucide icon wrappers - inline SVG fallbacks so dashboard never breaks
+const iconSvg = (path, viewBox="0 0 24 24") => ({ size=18, className="", color="currentColor" }={}) =>
+  React.createElement('svg', {
+    xmlns:"http://www.w3.org/2000/svg", width:size, height:size,
+    viewBox, fill:"none", stroke:color, strokeWidth:"2",
+    strokeLinecap:"round", strokeLinejoin:"round", className
+  }, ...path.map((d,i) => React.createElement('path',{key:i,d})));
+
+const Menu = iconSvg(["M3 12h18","M3 6h18","M3 18h18"]);
+const X = iconSvg(["M18 6L6 18","M6 6l12 12"]);
+const Settings = iconSvg(["M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z","M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"]);
+const Download = iconSvg(["M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4","M7 10l5 5 5-5","M12 15V3"]);
+const Send = iconSvg(["M22 2L11 13","M22 2L15 22 11 13 2 9l20-7z"]);
+const ArrowRight = iconSvg(["M5 12h14","M12 5l7 7-7 7"]);
+const CheckCircle2 = iconSvg(["M22 11.08V12a10 10 0 1 1-5.93-9.14","M22 4L12 14.01l-3-3"]);
+const AlertCircle = iconSvg(["M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z","M12 9v4","M12 17h.01"]);
+const TrendingUp = iconSvg(["M23 6l-9.5 9.5-5-5L1 18","M17 6h6v6"]);
+const Clock = iconSvg(["M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z","M12 6v6l4 2"]);
+const DollarSign = iconSvg(["M12 1v22","M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"]);
+const DollarSignIcon = DollarSign;
+const Users = iconSvg(["M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2","M23 21v-2a4 4 0 0 0-3-3.87","M16 3.13a4 4 0 0 1 0 7.75","M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"]);
+const Target = iconSvg(["M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0z","M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"]);
+const Zap = iconSvg(["M13 2L3 14h9l-1 8 10-12h-9l1-8z"]);
+const Home = iconSvg(["M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z","M9 22V12h6v10"]);
+const Briefcase = iconSvg(["M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z","M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"]);
+const BarChart3 = iconSvg(["M3 3v18h18","M18 17V9","M13 17V5","M8 17v-3"]);
+const Play = iconSvg(["M5 3l14 9-14 9V3z"]);
+const Copy = iconSvg(["M20 9H11a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2z","M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"]);
 
 
 const AsherGroupDashboard = () => {
@@ -1139,9 +1156,6 @@ aaron@ashergroup.com
     </div>
   );
 };
-
-window.AsherGroupDashboard = AsherGroupDashboard;
-
 
     const domContainer = document.getElementById('root');
     const root = ReactDOM.createRoot(domContainer);
